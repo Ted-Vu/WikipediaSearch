@@ -1,7 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { render } from "@testing-library/react";
 
 const Search = () => {
   const [term, setTerm] = useState("");
@@ -10,32 +9,46 @@ const Search = () => {
   console.log(result);
   // useEffect hooks with three types
   useEffect(() => {
-    if (term !== "") {
-      (async () => {
-        // how to make API request in Axios
-        //
-        const { data } = await axios.get("https://en.wikipedia.org/w/api.php", {
-          params: {
-            action: "query",
-            list: "search",
-            origin: "*",
-            format: "json",
-            srsearch: term,
-          },
-        });
+    // register a timeout wait for 5 secs before making API request
+    const timeoutID = setTimeout(() => {
+      if (term !== "") {
+        (async () => {
+          // making API request in an Async and Await style
+          const { data } = await axios.get(
+            "https://en.wikipedia.org/w/api.php",
+            {
+              params: {
+                action: "query",
+                list: "search",
+                origin: "*",
+                format: "json",
+                srsearch: term,
+              },
+            }
+          );
+          setResult(data.query.search);
+        })();
+      }
+    }, 500);
 
-        setResult(data.query.search);
-      })();
-    }
+    return () => {
+      clearTimeout(timeoutID);
+    };
   }, [term]);
 
   const renderResults = result.map((result) => {
     return (
       <div key={result.pageid} className="item">
-        <div className="content">
-          <div className="header">{result.title}</div>
-          <span dangerouslySetInnerHTML={{ __html: result.snippet }}></span>
+        <div className="right floated content">
+          <a
+            className="ui button"
+            href={`https://en.wikipedia.org.?curid=${result.pageid}`}
+          >
+            Go
+          </a>
         </div>
+        <div className="header">{result.title}</div>
+        <span dangerouslySetInnerHTML={{ __html: result.snippet }}></span>
       </div>
     );
   });
